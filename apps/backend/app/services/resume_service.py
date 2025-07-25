@@ -102,6 +102,17 @@ class ResumeService:
                     message="Failed to extract structured data from resume. Please ensure your resume contains all required sections.",
                 )
 
+            # Debug: Log the structured_resume keys
+            logger.debug(f"Structured resume keys: {list(structured_resume.keys())}")
+            extracted_keywords = structured_resume.get("extracted_keywords")
+            if not extracted_keywords or not isinstance(extracted_keywords, list) or len(extracted_keywords) == 0:
+                logger.error(f"Keyword extraction failed for resume with ID {resume_id}. structured_resume: {structured_resume}")
+                raise ResumeValidationError(
+                    resume_id=resume_id,
+                    message="Keyword extraction failed for resume. Cannot proceed with resume improvement without extracted keywords.",
+                )
+            logger.info(f"Extracted keywords for resume {resume_id}: {extracted_keywords}")
+
             processed_resume = ProcessedResume(
                 resume_id=resume_id,
                 personal_data=json.dumps(structured_resume.get("personal_data", {}))
@@ -134,13 +145,7 @@ class ResumeService:
                 if structured_resume.get("education")
                 else None,
                 extracted_keywords=json.dumps(
-                    {
-                        "extracted_keywords": structured_resume.get(
-                            "extracted_keywords", []
-                        )
-                    }
-                    if structured_resume.get("extracted_keywords")
-                    else None
+                    {"extracted_keywords": extracted_keywords}
                 ),
             )
 
